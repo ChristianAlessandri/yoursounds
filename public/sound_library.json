@@ -9,6 +9,22 @@
       "image_credits": "Photo by Augustine Wong on Unsplash"
     },
     {
+      "name": "Pink Noise",
+      "sound": "pink",
+      "sound_credits": "Created via JavaScript",
+      "image": "./images/pink_noise.jpg",
+      "image_alt": "Pink noise",
+      "image_credits": "Photo by Pawel Czerwinski on Unsplash"
+    },
+    {
+      "name": "Brown Noise",
+      "sound": "brown",
+      "sound_credits": "Created via JavaScript",
+      "image": "./images/brown_noise.jpg",
+      "image_alt": "Brown noise",
+      "image_credits": "Photo by Pawel Czerwinski on Unsplash"
+    },
+    {
       "name": "Rainforest",
       "sound": "./sounds/rainforest.mp3",
       "sound_credits": "Sound Effect by freesound_community from Pixabay",

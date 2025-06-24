@@ -12,10 +12,8 @@ const SoundCard = ({ sound }) => {
   const gainNodeRef = useRef(null);
   const noiseNodeRef = useRef(null);
 
-  // Funzione per creare white noise usando Web Audio API direttamente
-  const createWhiteNoiseAudio = () => {
+  const createNoiseAudio = (type) => {
     try {
-      // Crea un AudioContext se non esiste
       if (!audioContextRef.current) {
         audioContextRef.current = new (window.AudioContext ||
           window.webkitAudioContext)();
@@ -23,13 +21,11 @@ const SoundCard = ({ sound }) => {
 
       const audioContext = audioContextRef.current;
 
-      // Assicurati che l'AudioContext sia attivo
       if (audioContext.state === "suspended") {
         audioContext.resume();
       }
 
-      // Crea un buffer per il white noise
-      const bufferSize = audioContext.sampleRate * 2; // 2 secondi
+      const bufferSize = audioContext.sampleRate * 2;
       const noiseBuffer = audioContext.createBuffer(
         1,
         bufferSize,
@@ -37,37 +33,61 @@ const SoundCard = ({ sound }) => {
       );
       const output = noiseBuffer.getChannelData(0);
 
-      // Riempie il buffer con rumore bianco
-      for (let i = 0; i < bufferSize; i++) {
-        output[i] = Math.random() * 2 - 1;
+      // Generazione diversa in base al tipo
+      if (type === "white") {
+        for (let i = 0; i < bufferSize; i++) {
+          output[i] = Math.random() * 2 - 1;
+        }
+      } else if (type === "pink") {
+        let b0 = 0,
+          b1 = 0,
+          b2 = 0,
+          b3 = 0,
+          b4 = 0,
+          b5 = 0,
+          b6 = 0;
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1;
+          b0 = 0.99886 * b0 + white * 0.0555179;
+          b1 = 0.99332 * b1 + white * 0.0750759;
+          b2 = 0.969 * b2 + white * 0.153852;
+          b3 = 0.8665 * b3 + white * 0.3104856;
+          b4 = 0.55 * b4 + white * 0.5329522;
+          b5 = -0.7616 * b5 - white * 0.016898;
+          output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+          output[i] *= 0.11;
+          b6 = white * 0.115926;
+        }
+      } else if (type === "brown") {
+        let lastOut = 0;
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1;
+          output[i] = (lastOut + 0.02 * white) / 1.02;
+          lastOut = output[i];
+          output[i] *= 3.5;
+        }
       }
 
-      // Crea un BufferSource e collega tutto
-      const whiteNoiseSource = audioContext.createBufferSource();
-      whiteNoiseSource.buffer = noiseBuffer;
-      whiteNoiseSource.loop = true;
+      const source = audioContext.createBufferSource();
+      source.buffer = noiseBuffer;
+      source.loop = true;
 
-      // Crea un GainNode per controllare il volume
       const gainNode = audioContext.createGain();
       gainNode.gain.value = volume;
 
-      // Collega: source -> gain -> destination
-      whiteNoiseSource.connect(gainNode);
+      source.connect(gainNode);
       gainNode.connect(audioContext.destination);
 
-      // Salva i riferimenti
-      noiseNodeRef.current = whiteNoiseSource;
+      noiseNodeRef.current = source;
       gainNodeRef.current = gainNode;
 
-      console.log(`Buffer audio per "${sound.name}" generato con successo`);
-      return whiteNoiseSource;
+      return source;
     } catch (error) {
-      console.error("Errore nella creazione del white noise:", error);
+      console.error("Errore nella creazione del noise:", error);
       return null;
     }
   };
 
-  // Funzione per creare un Howl tradizionale (per file audio)
   const createHowlInstance = () => {
     return new Howl({
       src: [sound.sound],
@@ -92,7 +112,15 @@ const SoundCard = ({ sound }) => {
         }
       } else {
         // Start sound
-        const noiseSource = createWhiteNoiseAudio();
+        const noiseType =
+          sound.sound === "white"
+            ? "white"
+            : sound.sound === "pink"
+            ? "pink"
+            : sound.sound === "brown"
+            ? "brown"
+            : "white";
+        const noiseSource = createNoiseAudio(noiseType);
         if (noiseSource) {
           try {
             noiseSource.start();
