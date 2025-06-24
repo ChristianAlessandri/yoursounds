@@ -2,8 +2,8 @@
   "library": [
     {
       "name": "White Noise",
-      "sound": "./sounds/white_noise.mp3",
-      "sound_credits": "Sound Effect by Rik from Pixabay",
+      "sound": "white",
+      "sound_credits": "Created via JavaScript",
       "image": "./images/white_noise.jpg",
       "image_alt": "White noise",
       "image_credits": "Photo by Augustine Wong on Unsplash"

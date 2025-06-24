@@ -1,38 +1,162 @@
 import { useState, useRef, useEffect } from "react";
 import { AiOutlineInfoCircle } from "react-icons/ai";
+import { Howl, Howler } from "howler";
 
 const SoundCard = ({ sound }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(1); // 0 to 1
+  const [volume, setVolume] = useState(1);
   const audioRef = useRef(null);
+  const howlerRef = useRef(null);
+  const audioContextRef = useRef(null);
+  const gainNodeRef = useRef(null);
+  const noiseNodeRef = useRef(null);
 
-  // Toggle audio playback on card click
-  const handleCardClick = () => {
-    if (!audioRef.current) return;
-    if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      audioRef.current.play();
-      setIsPlaying(true);
+  // Funzione per creare white noise usando Web Audio API direttamente
+  const createWhiteNoiseAudio = () => {
+    try {
+      // Crea un AudioContext se non esiste
+      if (!audioContextRef.current) {
+        audioContextRef.current = new (window.AudioContext ||
+          window.webkitAudioContext)();
+      }
+
+      const audioContext = audioContextRef.current;
+
+      // Assicurati che l'AudioContext sia attivo
+      if (audioContext.state === "suspended") {
+        audioContext.resume();
+      }
+
+      // Crea un buffer per il white noise
+      const bufferSize = audioContext.sampleRate * 2; // 2 secondi
+      const noiseBuffer = audioContext.createBuffer(
+        1,
+        bufferSize,
+        audioContext.sampleRate
+      );
+      const output = noiseBuffer.getChannelData(0);
+
+      // Riempie il buffer con rumore bianco
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+
+      // Crea un BufferSource e collega tutto
+      const whiteNoiseSource = audioContext.createBufferSource();
+      whiteNoiseSource.buffer = noiseBuffer;
+      whiteNoiseSource.loop = true;
+
+      // Crea un GainNode per controllare il volume
+      const gainNode = audioContext.createGain();
+      gainNode.gain.value = volume;
+
+      // Collega: source -> gain -> destination
+      whiteNoiseSource.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      // Salva i riferimenti
+      noiseNodeRef.current = whiteNoiseSource;
+      gainNodeRef.current = gainNode;
+
+      console.log(`Buffer audio per "${sound.name}" generato con successo`);
+      return whiteNoiseSource;
+    } catch (error) {
+      console.error("Errore nella creazione del white noise:", error);
+      return null;
     }
   };
 
-  // Update volume when slider changes
+  // Funzione per creare un Howl tradizionale (per file audio)
+  const createHowlInstance = () => {
+    return new Howl({
+      src: [sound.sound],
+      loop: true,
+      volume: volume,
+    });
+  };
+
+  const handleCardClick = async () => {
+    const isGeneratedSound = !sound.sound.includes(".");
+
+    if (isGeneratedSound) {
+      if (isPlaying) {
+        if (noiseNodeRef.current) {
+          try {
+            noiseNodeRef.current.stop();
+            noiseNodeRef.current = null;
+            setIsPlaying(false);
+          } catch (error) {
+            console.error("Error in stopping sound:", error);
+          }
+        }
+      } else {
+        // Start sound
+        const noiseSource = createWhiteNoiseAudio();
+        if (noiseSource) {
+          try {
+            noiseSource.start();
+            setIsPlaying(true);
+
+            noiseSource.onended = () => {
+              setIsPlaying(false);
+            };
+          } catch (error) {
+            console.error("Error in starting noise:", error);
+          }
+        }
+      }
+    } else {
+      if (!howlerRef.current) {
+        howlerRef.current = createHowlInstance();
+      }
+
+      if (howlerRef.current) {
+        if (isPlaying) {
+          howlerRef.current.pause();
+        } else {
+          howlerRef.current.play();
+        }
+      }
+    }
+  };
+
   const handleVolumeChange = (e) => {
     const newVolume = parseFloat(e.target.value);
     setVolume(newVolume);
-    if (audioRef.current) {
-      audioRef.current.volume = newVolume;
+
+    const isGeneratedSound = !sound.sound.includes(".");
+
+    if (isGeneratedSound) {
+      if (gainNodeRef.current) {
+        gainNodeRef.current.gain.value = newVolume;
+      }
+    } else {
+      if (howlerRef.current) {
+        howlerRef.current.volume(newVolume);
+      }
     }
   };
 
-  // Pause audio when component unmounts
+  // Cleanup
   useEffect(() => {
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
+      if (howlerRef.current) {
+        howlerRef.current.unload();
+      }
+
+      if (noiseNodeRef.current) {
+        try {
+          noiseNodeRef.current.stop();
+        } catch (error) {}
+      }
+
+      // Cleanup AudioContext
+      if (
+        audioContextRef.current &&
+        audioContextRef.current.state !== "closed"
+      ) {
+        audioContextRef.current.close();
       }
     };
   }, []);
@@ -45,10 +169,10 @@ const SoundCard = ({ sound }) => {
       `}
       style={{ backgroundImage: `url(${sound.image})` }}
     >
-      {/* Info icon in top right */}
+      {/* Info icon */}
       <button
         onClick={(e) => {
-          e.stopPropagation(); // prevent triggering card click
+          e.stopPropagation();
           setShowTooltip(!showTooltip);
         }}
         className="absolute top-3 right-3 text-light-primary bg-dark-primary/70 rounded-full p-1 hover:bg-dark-primary/90 focus:outline-none"
@@ -58,7 +182,7 @@ const SoundCard = ({ sound }) => {
         <AiOutlineInfoCircle size={18} />
       </button>
 
-      {/* Tooltip with credits */}
+      {/* Credits tooltip */}
       {showTooltip && (
         <div className="absolute top-12 right-3 w-64 p-3 bg-dark-primary/90 text-light-primary text-sm rounded-2xl shadow-lg z-50">
           <p className="mb-1">
@@ -78,7 +202,7 @@ const SoundCard = ({ sound }) => {
       {/* Volume slider */}
       <div
         className="absolute bottom-4 right-4 bg-dark-primary/50 backdrop-blur-sm px-2 rounded-2xl py-2 flex items-center justify-center"
-        onClick={(e) => e.stopPropagation()} // prevent audio toggle
+        onClick={(e) => e.stopPropagation()}
       >
         <span className="w-6 mr-2 text-white">{Math.round(volume * 100)}</span>
         <input
@@ -103,13 +227,15 @@ const SoundCard = ({ sound }) => {
       </div>
 
       {/* Hidden audio element */}
-      <audio
-        ref={audioRef}
-        src={sound.sound}
-        loop
-        preload="auto"
-        style={{ display: "none" }}
-      />
+      {sound.sound.includes(".") && (
+        <audio
+          ref={audioRef}
+          src={sound.sound}
+          loop
+          preload="auto"
+          style={{ display: "none" }}
+        />
+      )}
     </div>
   );
 };
