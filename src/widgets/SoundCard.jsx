@@ -41,7 +41,7 @@ const SoundCard = ({ sound }) => {
     <div
       onClick={handleCardClick}
       className={`relative rounded-2xl overflow-hidden shadow-lg h-96 bg-cover bg-center cursor-pointer select-none
-        ${isPlaying ? "ring-4 ring-blue-500" : ""}
+        ${isPlaying ? "ring-4 ring-info" : ""}
       `}
       style={{ backgroundImage: `url(${sound.image})` }}
     >
@@ -51,7 +51,7 @@ const SoundCard = ({ sound }) => {
           e.stopPropagation(); // prevent triggering card click
           setShowTooltip(!showTooltip);
         }}
-        className="absolute top-3 right-3 text-white bg-black/50 rounded-full p-1 hover:bg-black/70 focus:outline-none"
+        className="absolute top-3 right-3 text-light-primary bg-dark-primary/70 rounded-full p-1 hover:bg-dark-primary/90 focus:outline-none"
         aria-label="Show credits"
         type="button"
       >
@@ -60,7 +60,7 @@ const SoundCard = ({ sound }) => {
 
       {/* Tooltip with credits */}
       {showTooltip && (
-        <div className="absolute top-12 right-3 w-64 p-3 bg-black/90 text-white text-sm rounded-2xl shadow-lg z-50">
+        <div className="absolute top-12 right-3 w-64 p-3 bg-dark-primary/90 text-light-primary text-sm rounded-2xl shadow-lg z-50">
           <p className="mb-1">
             <strong>Sound:</strong> {sound.sound_credits}
           </p>
@@ -71,13 +71,13 @@ const SoundCard = ({ sound }) => {
       )}
 
       {/* Gradient + title */}
-      <div className="absolute bottom-0 w-full p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
-        <h2 className="text-white text-xl font-bold">{sound.name}</h2>
+      <div className="absolute bottom-0 w-full p-4 bg-gradient-to-t from-dark-primary/80 via-dark-primary/40 to-transparent">
+        <h2 className="text-light-primary text-xl font-bold">{sound.name}</h2>
       </div>
 
       {/* Volume slider */}
       <div
-        className="absolute bottom-4 right-4 bg-black/50 backdrop-blur-sm px-2 rounded-2xl py-2 flex items-center justify-center"
+        className="absolute bottom-4 right-4 bg-dark-primary/50 backdrop-blur-sm px-2 rounded-2xl py-2 flex items-center justify-center"
         onClick={(e) => e.stopPropagation()} // prevent audio toggle
       >
         <span className="w-6 mr-2 text-white">{Math.round(volume * 100)}</span>
@@ -92,9 +92,9 @@ const SoundCard = ({ sound }) => {
           style={{
             height: "4px",
             appearance: "none",
-            background: `linear-gradient(to right, #3b82f6 ${
+            background: `linear-gradient(to right, oklch(62.3% 0.214 259.815) ${
               volume * 100
-            }%, #888888 ${volume * 100}%)`,
+            }%, oklch(55.3% 0.013 58.071) ${volume * 100}%)`,
             borderRadius: "999px",
             outline: "none",
             cursor: "pointer",
