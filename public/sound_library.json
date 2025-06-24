@@ -1,0 +1,20 @@
+{
+  "library": [
+    {
+      "name": "White Noise",
+      "sound": "./sounds/white_noise.mp3",
+      "sound_credits": "Sound Effect by Rik from Pixabay",
+      "image": "./images/white_noise.jpg",
+      "image_alt": "White noise",
+      "image_credits": "Photo by Augustine Wong on Unsplash"
+    },
+    {
+      "name": "Rainforest",
+      "sound": "./sounds/rainforest.mp3",
+      "sound_credits": "Sound Effect by freesound_community from Pixabay",
+      "image": "./images/rainforest.jpg",
+      "image_alt": "A serene image of a rainforest",
+      "image_credits": "Photo by Kyle Cleveland on Unsplash"
+    }
+  ]
+}
