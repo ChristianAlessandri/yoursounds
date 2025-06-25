@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { AiOutlineInfoCircle } from "react-icons/ai";
 import { Howl } from "howler";
 import {
@@ -6,8 +6,8 @@ import {
   stopNoise,
   setNoiseVolume,
   closeAudioContext,
-  setAirplaneCabinFilterFrequency,
-  setAirplaneCabinFilterQ,
+  setFilterFrequency,
+  setFilterQ,
 } from "../utils/noiseGenerator.js";
 import {
   extractDominantColor,
@@ -20,114 +20,32 @@ const SoundCard = ({ sound }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(1);
   const [dominantColor, setDominantColor] = useState("rgb(0,0,0)");
-  const audioRef = useRef(null);
-  const imageRef = useRef(null);
+
   const howlerRef = useRef(null);
   const noiseRef = useRef({
     noiseNode: null,
     gainNode: null,
     filterNode: null,
   });
+  const imageRef = useRef(null);
 
-  const handleImageLoad = () => {
+  const isGeneratedSound = !sound.sound.includes(".");
+
+  // Handle image loading to extract dominant color
+  const handleImageLoad = useCallback(() => {
     const color = extractDominantColor(imageRef.current);
     if (color) {
       setDominantColor(color);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (imageRef.current && imageRef.current.complete) {
       handleImageLoad();
     }
-  }, []);
+  }, [handleImageLoad]);
 
-  const createHowlInstance = () => {
-    return new Howl({
-      src: [sound.sound],
-      loop: true,
-      volume: volume,
-    });
-  };
-
-  const handleCardClick = async () => {
-    const isGeneratedSound = !sound.sound.includes(".");
-
-    if (isGeneratedSound) {
-      if (isPlaying) {
-        stopNoise();
-        setIsPlaying(false);
-      } else {
-        let noiseType = "white";
-
-        if (sound.sound === "white") {
-          noiseType = "white";
-        } else if (sound.sound === "pink") {
-          noiseType = "pink";
-        } else if (sound.sound === "brown") {
-          noiseType = "brown";
-        } else if (sound.sound === "airplane_cabin") {
-          noiseType = "airplane_cabin";
-        }
-
-        const { noiseNode, gainNode, filterNode } = createNoiseAudio(
-          noiseType,
-          volume
-        );
-
-        if (noiseNode) {
-          noiseRef.current = { noiseNode, gainNode, filterNode };
-
-          if (noiseType === "airplane_cabin" && filterNode) {
-            setAirplaneCabinFilterFrequency(800);
-            setAirplaneCabinFilterQ(1);
-          }
-
-          try {
-            noiseNode.start();
-            setIsPlaying(true);
-            noiseNode.onended = () => {
-              setIsPlaying(false);
-            };
-          } catch (error) {
-            console.error("Error in starting noise:", error);
-          }
-        }
-      }
-    } else {
-      if (!howlerRef.current) {
-        howlerRef.current = createHowlInstance();
-      }
-
-      if (isPlaying) {
-        howlerRef.current.pause();
-        setIsPlaying(false);
-      } else {
-        howlerRef.current.play();
-        setIsPlaying(true);
-      }
-    }
-  };
-
-  const handleVolumeChange = (e) => {
-    const newVolume = parseFloat(e.target.value);
-    setVolume(newVolume);
-
-    const isGeneratedSound = !sound.sound.includes(".");
-
-    if (isGeneratedSound) {
-      setNoiseVolume(newVolume);
-      if (sound.sound === "airplane_cabin") {
-        const freq = 300 + newVolume * 1500;
-        setAirplaneCabinFilterFrequency(freq);
-      }
-    } else {
-      if (howlerRef.current) {
-        howlerRef.current.volume(newVolume);
-      }
-    }
-  };
-
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (howlerRef.current) {
@@ -138,6 +56,79 @@ const SoundCard = ({ sound }) => {
     };
   }, []);
 
+  // Initialize Howl instance if it's a file-based sound
+  const getHowlInstance = useCallback(() => {
+    if (!howlerRef.current) {
+      howlerRef.current = new Howl({
+        src: [sound.sound],
+        loop: true,
+        volume: volume,
+      });
+    }
+    return howlerRef.current;
+  }, [sound.sound, volume]);
+
+  // Toggle playback for both generated and file-based sounds
+  const togglePlayback = async () => {
+    if (isGeneratedSound) {
+      if (isPlaying) {
+        stopNoise();
+        setIsPlaying(false);
+      } else {
+        const noiseType = sound.sound;
+        const { noiseNode, gainNode, filterNode } = createNoiseAudio(
+          noiseType,
+          volume
+        );
+
+        if (noiseNode) {
+          noiseRef.current = { noiseNode, gainNode, filterNode };
+
+          if (noiseType === "airplane_cabin" && filterNode) {
+            setFilterFrequency(800);
+            setFilterQ(1);
+          }
+
+          try {
+            noiseNode.start();
+            setIsPlaying(true);
+            noiseNode.onended = () => {
+              setIsPlaying(false);
+            };
+          } catch (error) {
+            console.error("Error starting noise:", error);
+          }
+        }
+      }
+    } else {
+      const howlerInstance = getHowlInstance();
+      if (isPlaying) {
+        howlerInstance.pause();
+        setIsPlaying(false);
+      } else {
+        howlerInstance.play();
+        setIsPlaying(true);
+      }
+    }
+  };
+
+  const handleVolumeChange = (e) => {
+    const newVolume = parseFloat(e.target.value);
+    setVolume(newVolume);
+
+    if (isGeneratedSound) {
+      setNoiseVolume(newVolume);
+      if (sound.sound === "airplane_cabin") {
+        const freq = 300 + newVolume * 1500;
+        setFilterFrequency(freq);
+      }
+    } else {
+      if (howlerRef.current) {
+        howlerRef.current.volume(newVolume);
+      }
+    }
+  };
+
   const colorStart = getRgbaWithAlpha(dominantColor, 1);
   const colorMid = getRgbaWithAlpha(dominantColor, 0.6);
   const brightness = getBrightness(dominantColor);
@@ -145,7 +136,7 @@ const SoundCard = ({ sound }) => {
 
   return (
     <div
-      onClick={handleCardClick}
+      onClick={togglePlayback}
       className={`relative rounded-2xl overflow-hidden shadow-lg h-96 bg-cover bg-center cursor-pointer select-none ${
         isPlaying ? "ring-4 ring-info" : ""
       }`}
@@ -174,7 +165,6 @@ const SoundCard = ({ sound }) => {
         </div>
       )}
 
-      {/* Dynamic gradient + title */}
       <div
         className="absolute bottom-0 w-full p-4 h-32 flex items-end justify-start"
         style={{
@@ -218,7 +208,6 @@ const SoundCard = ({ sound }) => {
         />
       </div>
 
-      {/* Hidden image to extract color */}
       <img
         ref={imageRef}
         src={sound.image}
@@ -228,10 +217,8 @@ const SoundCard = ({ sound }) => {
         onLoad={handleImageLoad}
       />
 
-      {/* Hidden audio element */}
       {sound.sound.includes(".") && (
         <audio
-          ref={audioRef}
           src={sound.sound}
           loop
           preload="auto"
