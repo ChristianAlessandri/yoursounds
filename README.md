@@ -2,12 +2,6 @@
 
 A modern React app for playing **white noise** and ambient sounds to help you focus, relax, or sleep.
 
-## Features
-
-- 🔁 Looping ambient sounds like rain, forest, wind, and more
-- 🔊 Click to play/pause audio with smooth transitions
-- 🎛️ Volume control
-
 ## Use Cases
 
 - Improve concentration while working or studying
@@ -20,6 +14,8 @@ A modern React app for playing **white noise** and ambient sounds to help you fo
 - Vite
 - React
 - Tailwind CSS
+
+## How to Start
 
 1. Clone the repository:
 
