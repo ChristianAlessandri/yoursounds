@@ -1,13 +1,17 @@
 import { useState, useRef, useEffect } from "react";
 import { AiOutlineInfoCircle } from "react-icons/ai";
 import { Howl } from "howler";
-import ColorThief from "colorthief";
 import {
   createNoiseAudio,
   stopNoise,
   setNoiseVolume,
   closeAudioContext,
 } from "../utils/noiseGenerator.js";
+import {
+  extractDominantColor,
+  getRgbaWithAlpha,
+  getBrightness,
+} from "../utils/imageUtils.js";
 
 const SoundCard = ({ sound }) => {
   const [showTooltip, setShowTooltip] = useState(false);
@@ -19,38 +23,18 @@ const SoundCard = ({ sound }) => {
   const howlerRef = useRef(null);
   const noiseRef = useRef({ noiseNode: null, gainNode: null });
 
+  const handleImageLoad = () => {
+    const color = extractDominantColor(imageRef.current);
+    if (color) {
+      setDominantColor(color);
+    }
+  };
+
   useEffect(() => {
     if (imageRef.current && imageRef.current.complete) {
-      extractDominantColor();
+      handleImageLoad();
     }
   }, []);
-
-  const extractDominantColor = () => {
-    const img = imageRef.current;
-    if (!img || img.naturalWidth === 0) {
-      console.warn("Image not uploaded or invalid");
-      return;
-    }
-
-    try {
-      const colorThief = new ColorThief();
-      const color = colorThief.getColor(img);
-      setDominantColor(`rgb(${color[0]}, ${color[1]}, ${color[2]})`);
-    } catch (error) {
-      console.error("Error in color extraction:", error);
-    }
-  };
-
-  // rgb to rgba conversion
-  const getRgbaWithAlpha = (rgbString, alpha) => {
-    const [r, g, b] = rgbString.match(/\d+/g).map(Number);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  };
-
-  const getBrightness = (rgbString) => {
-    const [r, g, b] = rgbString.match(/\d+/g).map(Number);
-    return (r * 299 + g * 587 + b * 114) / 1000;
-  };
 
   const createHowlInstance = () => {
     return new Howl({
@@ -65,7 +49,7 @@ const SoundCard = ({ sound }) => {
 
     if (isGeneratedSound) {
       if (isPlaying) {
-        stopNoise(); // Usa la funzione importata
+        stopNoise();
         setIsPlaying(false);
       } else {
         const noiseType =
@@ -112,7 +96,7 @@ const SoundCard = ({ sound }) => {
     const isGeneratedSound = !sound.sound.includes(".");
 
     if (isGeneratedSound) {
-      setNoiseVolume(newVolume); // Usa la funzione importata
+      setNoiseVolume(newVolume);
     } else {
       if (howlerRef.current) {
         howlerRef.current.volume(newVolume);
@@ -133,6 +117,7 @@ const SoundCard = ({ sound }) => {
   const colorStart = getRgbaWithAlpha(dominantColor, 1);
   const colorMid = getRgbaWithAlpha(dominantColor, 0.6);
   const brightness = getBrightness(dominantColor);
+  const isLight = brightness > 220;
 
   return (
     <div
@@ -174,7 +159,7 @@ const SoundCard = ({ sound }) => {
       >
         <h2
           className={`text-xl font-bold ${
-            brightness > 220 ? "text-dark-primary" : "text-light-primary"
+            isLight ? "text-dark-primary" : "text-light-primary"
           }`}
         >
           {sound.name}
@@ -216,7 +201,7 @@ const SoundCard = ({ sound }) => {
         crossOrigin="anonymous"
         alt=""
         style={{ display: "none" }}
-        onLoad={extractDominantColor}
+        onLoad={handleImageLoad}
       />
 
       {/* Hidden audio element */}
