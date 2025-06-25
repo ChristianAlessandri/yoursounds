@@ -4,9 +4,8 @@ A modern React app for playing **white noise** and ambient sounds to help you fo
 
 ## Use Cases
 
-- Improve concentration while working or studying
-- Create a calming atmosphere for relaxation or meditation
-- Help block distracting noise and support better sleep
+- 😌 Improve concentration while working or studying
+- 🍃 Create a calming atmosphere for relaxation or meditation
 
 ## Tech Stack
 
