@@ -1,16 +1,54 @@
 import { useState, useRef, useEffect } from "react";
 import { AiOutlineInfoCircle } from "react-icons/ai";
-import { Howl, Howler } from "howler";
+import { Howl } from "howler";
+import ColorThief from "colorthief";
 
 const SoundCard = ({ sound }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(1);
+  const [dominantColor, setDominantColor] = useState("rgb(0,0,0)");
   const audioRef = useRef(null);
+  const imageRef = useRef(null);
   const howlerRef = useRef(null);
   const audioContextRef = useRef(null);
   const gainNodeRef = useRef(null);
   const noiseNodeRef = useRef(null);
+
+  useEffect(() => {
+    if (imageRef.current && imageRef.current.complete) {
+      extractDominantColor();
+    }
+  }, []);
+
+  const extractDominantColor = () => {
+    const img = imageRef.current;
+    if (!img || img.naturalWidth === 0) {
+      console.warn("Immagine non caricata o non valida");
+      return;
+    }
+
+    try {
+      const colorThief = new ColorThief();
+      const color = colorThief.getColor(img);
+      setDominantColor(`rgb(${color[0]}, ${color[1]}, ${color[2]})`);
+    } catch (error) {
+      console.error("Error in color extraction:", error);
+    }
+  };
+
+  // rgb to rgba conversion
+  const getRgbaWithAlpha = (rgbString, alpha) => {
+    const [r, g, b] = rgbString.match(/\d+/g).map(Number);
+    console.log(`rgba(${r}, ${g}, ${b}, ${alpha})`);
+
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
+
+  const getBrightness = (rgbString) => {
+    const [r, g, b] = rgbString.match(/\d+/g).map(Number);
+    return (r * 299 + g * 587 + b * 114) / 1000;
+  };
 
   const createNoiseAudio = (type) => {
     try {
@@ -33,7 +71,6 @@ const SoundCard = ({ sound }) => {
       );
       const output = noiseBuffer.getChannelData(0);
 
-      // Generazione diversa in base al tipo
       if (type === "white") {
         for (let i = 0; i < bufferSize; i++) {
           output[i] = Math.random() * 2 - 1;
@@ -83,7 +120,7 @@ const SoundCard = ({ sound }) => {
 
       return source;
     } catch (error) {
-      console.error("Errore nella creazione del noise:", error);
+      console.error("Error in noise creation:", error);
       return null;
     }
   };
@@ -111,7 +148,6 @@ const SoundCard = ({ sound }) => {
           }
         }
       } else {
-        // Start sound
         const noiseType =
           sound.sound === "white"
             ? "white"
@@ -125,7 +161,6 @@ const SoundCard = ({ sound }) => {
           try {
             noiseSource.start();
             setIsPlaying(true);
-
             noiseSource.onended = () => {
               setIsPlaying(false);
             };
@@ -166,7 +201,6 @@ const SoundCard = ({ sound }) => {
     }
   };
 
-  // Cleanup
   useEffect(() => {
     return () => {
       if (howlerRef.current) {
@@ -179,7 +213,6 @@ const SoundCard = ({ sound }) => {
         } catch (error) {}
       }
 
-      // Cleanup AudioContext
       if (
         audioContextRef.current &&
         audioContextRef.current.state !== "closed"
@@ -189,15 +222,18 @@ const SoundCard = ({ sound }) => {
     };
   }, []);
 
+  const colorStart = getRgbaWithAlpha(dominantColor, 1);
+  const colorMid = getRgbaWithAlpha(dominantColor, 0.6);
+  const brightness = getBrightness(dominantColor);
+
   return (
     <div
       onClick={handleCardClick}
-      className={`relative rounded-2xl overflow-hidden shadow-lg h-96 bg-cover bg-center cursor-pointer select-none
-        ${isPlaying ? "ring-4 ring-info" : ""}
-      `}
+      className={`relative rounded-2xl overflow-hidden shadow-lg h-96 bg-cover bg-center cursor-pointer select-none ${
+        isPlaying ? "ring-4 ring-info" : ""
+      }`}
       style={{ backgroundImage: `url(${sound.image})` }}
     >
-      {/* Info icon */}
       <button
         onClick={(e) => {
           e.stopPropagation();
@@ -210,7 +246,6 @@ const SoundCard = ({ sound }) => {
         <AiOutlineInfoCircle size={18} />
       </button>
 
-      {/* Credits tooltip */}
       {showTooltip && (
         <div className="absolute top-12 right-3 w-64 p-3 bg-dark-primary/90 text-light-primary text-sm rounded-2xl shadow-lg z-50">
           <p className="mb-1">
@@ -222,17 +257,29 @@ const SoundCard = ({ sound }) => {
         </div>
       )}
 
-      {/* Gradient + title */}
-      <div className="absolute bottom-0 w-full p-4 bg-gradient-to-t from-dark-primary/80 via-dark-primary/40 to-transparent">
-        <h2 className="text-light-primary text-xl font-bold">{sound.name}</h2>
+      {/* Dynamic gradient + title */}
+      <div
+        className="absolute bottom-0 w-full p-4 h-32 flex items-end justify-start"
+        style={{
+          background: `linear-gradient(to top, ${colorStart}, ${colorMid}, transparent)`,
+        }}
+      >
+        <h2
+          className={`text-xl font-bold ${
+            brightness > 220 ? "text-dark-primary" : "text-light-primary"
+          }`}
+        >
+          {sound.name}
+        </h2>
       </div>
 
-      {/* Volume slider */}
       <div
         className="absolute bottom-4 right-4 bg-dark-primary/50 backdrop-blur-sm px-2 rounded-2xl py-2 flex items-center justify-center"
         onClick={(e) => e.stopPropagation()}
       >
-        <span className="w-6 mr-2 text-white">{Math.round(volume * 100)}</span>
+        <span className="w-6 mr-2 text-light-primary">
+          {Math.round(volume * 100)}
+        </span>
         <input
           type="range"
           min="0"
@@ -253,6 +300,16 @@ const SoundCard = ({ sound }) => {
           }}
         />
       </div>
+
+      {/* Hidden image to extract color */}
+      <img
+        ref={imageRef}
+        src={sound.image}
+        crossOrigin="anonymous"
+        alt=""
+        style={{ display: "none" }}
+        onLoad={extractDominantColor}
+      />
 
       {/* Hidden audio element */}
       {sound.sound.includes(".") && (
