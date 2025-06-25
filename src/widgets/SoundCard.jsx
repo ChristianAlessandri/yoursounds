@@ -6,6 +6,8 @@ import {
   stopNoise,
   setNoiseVolume,
   closeAudioContext,
+  setAirplaneCabinFilterFrequency,
+  setAirplaneCabinFilterQ,
 } from "../utils/noiseGenerator.js";
 import {
   extractDominantColor,
@@ -21,7 +23,11 @@ const SoundCard = ({ sound }) => {
   const audioRef = useRef(null);
   const imageRef = useRef(null);
   const howlerRef = useRef(null);
-  const noiseRef = useRef({ noiseNode: null, gainNode: null });
+  const noiseRef = useRef({
+    noiseNode: null,
+    gainNode: null,
+    filterNode: null,
+  });
 
   const handleImageLoad = () => {
     const color = extractDominantColor(imageRef.current);
@@ -52,17 +58,31 @@ const SoundCard = ({ sound }) => {
         stopNoise();
         setIsPlaying(false);
       } else {
-        const noiseType =
-          sound.sound === "white"
-            ? "white"
-            : sound.sound === "pink"
-            ? "pink"
-            : sound.sound === "brown"
-            ? "brown"
-            : "white";
-        const { noiseNode, gainNode } = createNoiseAudio(noiseType, volume);
+        let noiseType = "white";
+
+        if (sound.sound === "white") {
+          noiseType = "white";
+        } else if (sound.sound === "pink") {
+          noiseType = "pink";
+        } else if (sound.sound === "brown") {
+          noiseType = "brown";
+        } else if (sound.sound === "airplane_cabin") {
+          noiseType = "airplane_cabin";
+        }
+
+        const { noiseNode, gainNode, filterNode } = createNoiseAudio(
+          noiseType,
+          volume
+        );
+
         if (noiseNode) {
-          noiseRef.current = { noiseNode, gainNode };
+          noiseRef.current = { noiseNode, gainNode, filterNode };
+
+          if (noiseType === "airplane_cabin" && filterNode) {
+            setAirplaneCabinFilterFrequency(800);
+            setAirplaneCabinFilterQ(1);
+          }
+
           try {
             noiseNode.start();
             setIsPlaying(true);
@@ -97,6 +117,10 @@ const SoundCard = ({ sound }) => {
 
     if (isGeneratedSound) {
       setNoiseVolume(newVolume);
+      if (sound.sound === "airplane_cabin") {
+        const freq = 300 + newVolume * 1500;
+        setAirplaneCabinFilterFrequency(freq);
+      }
     } else {
       if (howlerRef.current) {
         howlerRef.current.volume(newVolume);

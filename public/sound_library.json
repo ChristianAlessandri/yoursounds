@@ -3,7 +3,7 @@
     {
       "name": "White Noise",
       "sound": "white",
-      "sound_credits": "Created via JavaScript",
+      "sound_credits": "Created with JavaScript",
       "image": "./images/white_noise.jpg",
       "image_alt": "White noise",
       "image_credits": "Photo by Augustine Wong on Unsplash"
@@ -11,7 +11,7 @@
     {
       "name": "Pink Noise",
       "sound": "pink",
-      "sound_credits": "Created via JavaScript",
+      "sound_credits": "Created with JavaScript",
       "image": "./images/pink_noise.jpg",
       "image_alt": "Pink noise",
       "image_credits": "Photo by Pawel Czerwinski on Unsplash"
@@ -19,10 +19,18 @@
     {
       "name": "Brown Noise",
       "sound": "brown",
-      "sound_credits": "Created via JavaScript",
+      "sound_credits": "Created with JavaScript",
       "image": "./images/brown_noise.jpg",
       "image_alt": "Brown noise",
       "image_credits": "Photo by Pawel Czerwinski on Unsplash"
+    },
+    {
+      "name": "Airplane Cabin",
+      "sound": "airplane_cabin",
+      "sound_credits": "Created with JavaScript",
+      "image": "./images/airplane_cabin.jpg",
+      "image_alt": "Airplane cabin",
+      "image_credits": "Photo by Karsten Winegeart on Unsplash"
     },
     {
       "name": "Rainforest",
