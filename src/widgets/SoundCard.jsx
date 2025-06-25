@@ -15,7 +15,7 @@ import {
   getBrightness,
 } from "../utils/imageUtils.js";
 
-const SoundCard = ({ sound }) => {
+const SoundCard = ({ sound, onSoundChange }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(1);
@@ -30,6 +30,17 @@ const SoundCard = ({ sound }) => {
   const imageRef = useRef(null);
 
   const isGeneratedSound = !sound.sound.includes(".");
+
+  useEffect(() => {
+    if (onSoundChange) {
+      onSoundChange({
+        id: sound.name,
+        name: sound.name,
+        isPlaying: isPlaying,
+        volume: volume,
+      });
+    }
+  }, [isPlaying, volume, sound.id, sound.name, onSoundChange]);
 
   // Handle image loading to extract dominant color
   const handleImageLoad = useCallback(() => {
