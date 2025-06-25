@@ -139,12 +139,12 @@ const SoundCard = ({ sound }) => {
         howlerRef.current = createHowlInstance();
       }
 
-      if (howlerRef.current) {
-        if (isPlaying) {
-          howlerRef.current.pause();
-        } else {
-          howlerRef.current.play();
-        }
+      if (isPlaying) {
+        howlerRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        howlerRef.current.play();
+        setIsPlaying(true);
       }
     }
   };
