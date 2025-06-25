@@ -143,7 +143,7 @@ const SoundCard = ({ sound, onSoundChange }) => {
   const colorStart = getRgbaWithAlpha(dominantColor, 1);
   const colorMid = getRgbaWithAlpha(dominantColor, 0.6);
   const brightness = getBrightness(dominantColor);
-  const isLight = brightness > 220;
+  const isLight = brightness > 180;
 
   return (
     <div

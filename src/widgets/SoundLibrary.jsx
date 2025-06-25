@@ -1,12 +1,13 @@
 import { useEffect, useState, useRef } from "react";
 import SoundCard from "./SoundCard.jsx";
+import { SOUND_LIBRARY } from "../core/AppConstants.js";
 
 const SoundLibrary = () => {
   const [library, setLibrary] = useState([]);
   const activeSoundsRef = useRef(new Map());
 
   useEffect(() => {
-    fetch("/sound_library.json")
+    fetch(SOUND_LIBRARY)
       .then((res) => res.json())
       .then((data) => {
         const libraryWithIds = data.library.map((sound, index) => ({

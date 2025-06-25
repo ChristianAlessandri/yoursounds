@@ -37,8 +37,16 @@
       "sound": "./sounds/rainforest.mp3",
       "sound_credits": "Sound Effect by freesound_community from Pixabay",
       "image": "./images/rainforest.jpg",
-      "image_alt": "A serene image of a rainforest",
+      "image_alt": "Rainforest",
       "image_credits": "Photo by Kyle Cleveland on Unsplash"
+    },
+    {
+      "name": "Ocean Waves",
+      "sound": "./sounds/ocean_waves.mp3",
+      "sound_credits": "Sound Effect by Richard Multimedia from Pixabay",
+      "image": "./images/ocean_waves.jpg",
+      "image_alt": "Ocean waves",
+      "image_credits": "Photo by Joel Vodell on Unsplash"
     }
   ]
 }
