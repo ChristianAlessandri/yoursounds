@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { AiOutlineInfoCircle } from "react-icons/ai";
+import { FaCircleInfo } from "react-icons/fa6";
 import { Howl } from "howler";
 import {
   createNoiseAudio,
@@ -162,7 +162,7 @@ const SoundCard = ({ sound, onSoundChange }) => {
         aria-label="Show credits"
         type="button"
       >
-        <AiOutlineInfoCircle size={18} />
+        <FaCircleInfo size={18} />
       </button>
 
       {showTooltip && (

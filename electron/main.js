@@ -17,6 +17,8 @@ const createWindow = () => {
       enableRemoteModule: false,
       sandbox: true,
     },
+    title: "YourSounds",
+    icon: path.join(__dirname, "../public/logos/yoursounds.png"),
   });
 
   // Development build
@@ -37,7 +39,7 @@ app.whenReady().then(() => {
   createWindow();
 
   // Tray icon
-  tray = new Tray(path.join(__dirname, "icon.png"));
+  tray = new Tray(path.join(__dirname, "../public/logos/yoursounds.png"));
 
   // Crea un menu contestuale per il tray
   const contextMenu = Menu.buildFromTemplate([
