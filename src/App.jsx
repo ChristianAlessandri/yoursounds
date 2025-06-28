@@ -1,13 +1,19 @@
+import { Routes, Route } from "react-router-dom";
+import SidebarNavigation from "./components/SidebarNavigation.jsx";
+import Home from "./screens/Home.jsx";
+import Settings from "./screens/Settings.jsx";
 import "./App.css";
-import SoundLibrary from "./widgets/SoundLibrary.jsx";
 
 function App() {
   return (
-    <div className="min-h-screen bg-light-secondary dark:bg-dark-secondary">
-      <h1 className="text-3xl font-bold text-center p-6 text-dark-primary dark:text-light-primary">
-        Library
-      </h1>
-      <SoundLibrary />
+    <div className="flex flex-row h-screen">
+      <SidebarNavigation />
+      <div className="flex-grow">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/settings" element={<Settings />} />
+        </Routes>
+      </div>
     </div>
   );
 }

@@ -18,3 +18,15 @@
   --color-dark-primary: oklch(14.5% 0 0);
   --color-dark-secondary: oklch(20.5% 0 0);
 }
+
+.navlink {
+  @apply w-full hover:bg-light-secondary dark:hover:bg-dark-secondary rounded-xl px-4 py-2 flex flex-row items-center justify-start text-dark-secondary dark:text-light-secondary;
+}
+
+.navlink.active {
+  @apply text-light-secondary bg-linear-to-br from-primary to-secondary font-semibold;
+}
+
+.navlink-icon {
+  @apply mr-2;
+}
