@@ -1,6 +1,6 @@
 # YourSounds
 
-A modern React app for playing **white noise** and ambient sounds to help you focus, relax, or sleep.
+A desktop app for playing **white noise** and ambient sounds to help you focus, relax, or sleep.
 
 ## Use Cases
 
