@@ -1,10 +1,32 @@
 import { app, BrowserWindow, Tray, Menu, ipcMain } from "electron";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const settingsPath = path.join(__dirname, "../public/data/settings.json");
+
+const readSettings = () => {
+  try {
+    const settingsData = fs.readFileSync(settingsPath, "utf-8");
+    return JSON.parse(settingsData);
+  } catch (error) {
+    console.error("Error while reading settings.json:", error);
+    return { theme: "light", systemTray: false };
+  }
+};
+
+const writeSettings = (settings) => {
+  try {
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2), "utf-8");
+  } catch (error) {
+    console.error("Error while writing settings.json:", error);
+  }
+};
+
 let tray = null;
+let currentSettings = readSettings();
 
 const createWindow = () => {
   const win = new BrowserWindow({
@@ -27,10 +49,17 @@ const createWindow = () => {
   // Production build
   // win.loadFile(path.join(__dirname, "../dist/index.html"));
 
+  const settings = readSettings();
+
   win.on("close", (event) => {
     if (!app.isQuitting) {
-      event.preventDefault();
-      win.hide();
+      if (currentSettings.systemTray) {
+        event.preventDefault();
+        win.hide();
+      } else {
+        app.isQuitting = true;
+        app.quit();
+      }
     }
   });
 };
@@ -67,6 +96,15 @@ app.whenReady().then(() => {
     } else {
       mainWindow.show();
     }
+  });
+
+  ipcMain.handle("get-settings", () => {
+    return readSettings();
+  });
+
+  ipcMain.on("set-settings", (event, newSettings) => {
+    currentSettings = newSettings;
+    writeSettings(newSettings);
   });
 });
 
