@@ -33,6 +33,14 @@
       "image_credits": "Photo by Karsten Winegeart on Unsplash"
     },
     {
+      "name": "Hair Dryer",
+      "sound": "./sounds/hair_dryer.mp3",
+      "sound_credits": "Sound Effect by freesound_community from Pixabay",
+      "image": "./images/hair_dryer.jpg",
+      "image_alt": "Hair dryer",
+      "image_credits": "Photo by Tessa Edmiston on Unsplash"
+    },
+    {
       "name": "Rainforest",
       "sound": "./sounds/rainforest.mp3",
       "sound_credits": "Sound Effect by freesound_community from Pixabay",

@@ -18,7 +18,7 @@ function App() {
   return (
     <div className="flex flex-row h-screen">
       <SidebarNavigation />
-      <div className="flex-grow">
+      <div className="flex-grow overflow-y-auto">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/settings" element={<Settings />} />
