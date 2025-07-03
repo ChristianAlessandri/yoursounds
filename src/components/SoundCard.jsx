@@ -1,142 +1,53 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { FaCircleInfo } from "react-icons/fa6";
-import { Howl } from "howler";
-import {
-  createNoiseAudio,
-  stopNoise,
-  setNoiseVolume,
-  closeAudioContext,
-  setFilterFrequency,
-  setFilterQ,
-} from "../utils/noiseGenerator.js";
+import { useAudio } from "../context/AudioContext.jsx";
 import {
   extractDominantColor,
   getRgbaWithAlpha,
   getBrightness,
 } from "../utils/imageUtils.js";
 
-const SoundCard = ({ sound, onSoundChange }) => {
+const SoundCard = ({ sound }) => {
+  const imageRef = useRef(null);
   const [showTooltip, setShowTooltip] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(1);
   const [dominantColor, setDominantColor] = useState("rgb(0,0,0)");
 
-  const howlerRef = useRef(null);
-  const noiseRef = useRef({
-    noiseNode: null,
-    gainNode: null,
-    filterNode: null,
-  });
-  const imageRef = useRef(null);
-
+  const { play, stop, setVolume, setFilter, getIsPlaying, getVolume } =
+    useAudio();
   const isGeneratedSound = !sound.sound.includes(".");
 
-  useEffect(() => {
-    if (onSoundChange) {
-      onSoundChange({
-        id: sound.name,
-        name: sound.name,
-        isPlaying: isPlaying,
-        volume: volume,
-      });
-    }
-  }, [isPlaying, volume, sound.id, sound.name, onSoundChange]);
+  const isPlaying = getIsPlaying(sound.sound);
+  const volume = getVolume(sound.sound);
 
-  // Handle image loading to extract dominant color
   const handleImageLoad = useCallback(() => {
     const color = extractDominantColor(imageRef.current);
-    if (color) {
-      setDominantColor(color);
-    }
+    if (color) setDominantColor(color);
   }, []);
 
   useEffect(() => {
-    if (imageRef.current && imageRef.current.complete) {
-      handleImageLoad();
-    }
+    if (imageRef.current?.complete) handleImageLoad();
   }, [handleImageLoad]);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (howlerRef.current) {
-        howlerRef.current.unload();
-      }
-      stopNoise();
-      closeAudioContext();
-    };
-  }, []);
+  const togglePlayback = () => {
+    if (!isGeneratedSound) return;
 
-  // Initialize Howl instance if it's a file-based sound
-  const getHowlInstance = useCallback(() => {
-    if (!howlerRef.current) {
-      howlerRef.current = new Howl({
-        src: [sound.sound],
-        loop: true,
-        volume: volume,
-      });
-    }
-    return howlerRef.current;
-  }, [sound.sound, volume]);
-
-  // Toggle playback for both generated and file-based sounds
-  const togglePlayback = async () => {
-    if (isGeneratedSound) {
-      if (isPlaying) {
-        stopNoise();
-        setIsPlaying(false);
-      } else {
-        const noiseType = sound.sound;
-        const { noiseNode, gainNode, filterNode } = createNoiseAudio(
-          noiseType,
-          volume
-        );
-
-        if (noiseNode) {
-          noiseRef.current = { noiseNode, gainNode, filterNode };
-
-          if (noiseType === "airplane_cabin" && filterNode) {
-            setFilterFrequency(800);
-            setFilterQ(1);
-          }
-
-          try {
-            noiseNode.start();
-            setIsPlaying(true);
-            noiseNode.onended = () => {
-              setIsPlaying(false);
-            };
-          } catch (error) {
-            console.error("Error starting noise:", error);
-          }
-        }
-      }
+    if (isPlaying) {
+      stop(sound.sound);
     } else {
-      const howlerInstance = getHowlInstance();
-      if (isPlaying) {
-        howlerInstance.pause();
-        setIsPlaying(false);
-      } else {
-        howlerInstance.play();
-        setIsPlaying(true);
+      play(sound.sound, volume);
+      if (sound.sound === "airplane_cabin") {
+        setFilter(sound.sound, { freq: 800, q: 1 });
       }
     }
   };
 
   const handleVolumeChange = (e) => {
     const newVolume = parseFloat(e.target.value);
-    setVolume(newVolume);
+    setVolume(sound.sound, newVolume);
 
-    if (isGeneratedSound) {
-      setNoiseVolume(newVolume);
-      if (sound.sound === "airplane_cabin") {
-        const freq = 300 + newVolume * 1500;
-        setFilterFrequency(freq);
-      }
-    } else {
-      if (howlerRef.current) {
-        howlerRef.current.volume(newVolume);
-      }
+    if (sound.sound === "airplane_cabin") {
+      const freq = 300 + newVolume * 1500;
+      setFilter(sound.sound, { freq });
     }
   };
 
@@ -158,7 +69,7 @@ const SoundCard = ({ sound, onSoundChange }) => {
           e.stopPropagation();
           setShowTooltip(!showTooltip);
         }}
-        className="absolute top-3 right-3 text-light-primary bg-dark-primary/70 rounded-full p-1 hover:bg-dark-primary/90 focus:outline-none"
+        className="absolute top-3 right-3 text-light-primary bg-dark-primary/70 rounded-full p-1 hover:bg-dark-primary/90"
         aria-label="Show credits"
         type="button"
       >
@@ -191,33 +102,35 @@ const SoundCard = ({ sound, onSoundChange }) => {
         </h2>
       </div>
 
-      <div
-        className="absolute bottom-4 right-4 bg-dark-primary/50 backdrop-blur-sm px-2 rounded-2xl py-2 flex items-center justify-center"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <span className="w-6 mr-2 text-light-primary">
-          {Math.round(volume * 100)}
-        </span>
-        <input
-          type="range"
-          min="0"
-          max="1"
-          step="0.05"
-          value={volume}
-          onChange={handleVolumeChange}
-          className="w-24"
-          style={{
-            height: "4px",
-            appearance: "none",
-            background: `linear-gradient(to right, oklch(62.3% 0.214 259.815) ${
-              volume * 100
-            }%, oklch(55.3% 0.013 58.071) ${volume * 100}%)`,
-            borderRadius: "999px",
-            outline: "none",
-            cursor: "pointer",
-          }}
-        />
-      </div>
+      {isGeneratedSound && (
+        <div
+          className="absolute bottom-4 right-4 bg-dark-primary/50 backdrop-blur-sm px-2 rounded-2xl py-2 flex items-center justify-center"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <span className="w-6 mr-2 text-light-primary">
+            {Math.round(volume * 100)}
+          </span>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.05"
+            value={volume}
+            onChange={handleVolumeChange}
+            className="w-24"
+            style={{
+              height: "4px",
+              appearance: "none",
+              background: `linear-gradient(to right, oklch(62.3% 0.214 259.815) ${
+                volume * 100
+              }%, oklch(55.3% 0.013 58.071) ${volume * 100}%)`,
+              borderRadius: "999px",
+              outline: "none",
+              cursor: "pointer",
+            }}
+          />
+        </div>
+      )}
 
       <img
         ref={imageRef}
@@ -227,15 +140,6 @@ const SoundCard = ({ sound, onSoundChange }) => {
         style={{ display: "none" }}
         onLoad={handleImageLoad}
       />
-
-      {sound.sound.includes(".") && (
-        <audio
-          src={sound.sound}
-          loop
-          preload="auto"
-          style={{ display: "none" }}
-        />
-      )}
     </div>
   );
 };

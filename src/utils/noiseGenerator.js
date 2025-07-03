@@ -12,7 +12,7 @@ const initializeAudioContext = () => {
   }
 };
 
-const generateWhiteNoise = (bufferSize, sampleRate) => {
+const generateWhiteNoise = (bufferSize) => {
   const output = new Float32Array(bufferSize);
   for (let i = 0; i < bufferSize; i++) {
     output[i] = Math.random() * 2 - 1;

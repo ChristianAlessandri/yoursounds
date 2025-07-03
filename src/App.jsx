@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import SidebarNavigation from "./components/SidebarNavigation.jsx";
 import Home from "./screens/Home.jsx";
 import Settings from "./screens/Settings.jsx";
+import { AudioProvider } from "./context/AudioContext.jsx";
 import "./App.css";
 
 function App() {
@@ -16,15 +17,17 @@ function App() {
   }, []);
 
   return (
-    <div className="flex flex-row h-screen">
-      <SidebarNavigation />
-      <div className="flex-grow overflow-y-auto">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/settings" element={<Settings />} />
-        </Routes>
+    <AudioProvider>
+      <div className="flex flex-row h-screen">
+        <SidebarNavigation />
+        <div className="flex-grow overflow-y-auto">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/settings" element={<Settings />} />
+          </Routes>
+        </div>
       </div>
-    </div>
+    </AudioProvider>
   );
 }
 
