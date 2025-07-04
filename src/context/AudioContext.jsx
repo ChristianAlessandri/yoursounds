@@ -1,4 +1,5 @@
 import { createContext, useContext, useRef, useState, useEffect } from "react";
+import { Howl } from "howler";
 import {
   createNoiseAudio,
   closeAudioContext,
@@ -15,46 +16,75 @@ export const AudioProvider = ({ children }) => {
   const audioRefs = useRef({});
   const [states, setStates] = useState({});
 
+  const isGenerated = (type) => !type.includes(".");
+
   const play = (type, volume = 1) => {
     if (audioRefs.current[type]?.isPlaying) return;
 
-    const { noiseNode, gainNode, filterNode } = createNoiseAudio(type, volume);
-    if (noiseNode) {
-      try {
-        noiseNode.start();
-
-        audioRefs.current[type] = {
-          noiseNode,
-          gainNode,
-          filterNode,
-          isPlaying: true,
-        };
-
-        setStates((prev) => ({
-          ...prev,
-          [type]: {
+    if (isGenerated(type)) {
+      const { noiseNode, gainNode, filterNode } = createNoiseAudio(
+        type,
+        volume
+      );
+      if (noiseNode) {
+        try {
+          noiseNode.start();
+          audioRefs.current[type] = {
+            noiseNode,
+            gainNode,
+            filterNode,
             isPlaying: true,
-            volume,
-          },
-        }));
-      } catch (error) {
-        console.error("Error starting noise:", error);
+            isHowl: false,
+          };
+        } catch (error) {
+          console.error("Error starting noise:", error);
+          return;
+        }
       }
+    } else {
+      const howl = new Howl({
+        src: [type],
+        loop: true,
+        volume,
+        html5: true, // importante per Electron
+      });
+
+      howl.play();
+
+      audioRefs.current[type] = {
+        howl,
+        isPlaying: true,
+        isHowl: true,
+      };
     }
+
+    setStates((prev) => ({
+      ...prev,
+      [type]: {
+        isPlaying: true,
+        volume,
+      },
+    }));
   };
 
   const stop = (type) => {
-    const nodes = audioRefs.current[type];
-    if (nodes?.noiseNode) {
+    const ref = audioRefs.current[type];
+    if (!ref) return;
+
+    if (ref.isHowl) {
+      ref.howl?.stop();
+      ref.howl?.unload();
+    } else {
       try {
-        nodes.noiseNode.stop();
-        nodes.noiseNode.disconnect();
-        nodes.gainNode?.disconnect();
-        nodes.filterNode?.disconnect();
+        ref.noiseNode?.stop();
+        ref.noiseNode?.disconnect();
+        ref.gainNode?.disconnect();
+        ref.filterNode?.disconnect();
       } catch (e) {
-        console.error("Error stopping sound:", e);
+        console.error("Error stopping noise:", e);
       }
     }
+
     delete audioRefs.current[type];
 
     setStates((prev) => ({
@@ -67,11 +97,14 @@ export const AudioProvider = ({ children }) => {
   };
 
   const setVolume = (type, volume) => {
-    const nodes = audioRefs.current[type];
-    if (nodes?.gainNode) {
-      nodes.gainNode.gain.setValueAtTime(
+    const ref = audioRefs.current[type];
+
+    if (ref?.isHowl && ref.howl) {
+      ref.howl.volume(volume);
+    } else if (ref?.gainNode) {
+      ref.gainNode.gain.setValueAtTime(
         volume,
-        nodes.gainNode.context.currentTime
+        ref.gainNode.context.currentTime
       );
     }
 
@@ -85,12 +118,11 @@ export const AudioProvider = ({ children }) => {
   };
 
   const setFilter = (type, { freq, q, filterType }) => {
-    const nodes = audioRefs.current[type];
-    if (nodes?.filterNode) {
-      if (freq !== undefined) setFilterFrequency(freq);
-      if (q !== undefined) setFilterQ(q);
-      if (filterType !== undefined) setFilterType(filterType);
-    }
+    const ref = audioRefs.current[type];
+    if (!ref?.filterNode) return;
+    if (freq !== undefined) setFilterFrequency(freq);
+    if (q !== undefined) setFilterQ(q);
+    if (filterType !== undefined) setFilterType(filterType);
   };
 
   const getIsPlaying = (type) => states[type]?.isPlaying || false;

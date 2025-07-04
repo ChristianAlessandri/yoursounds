@@ -14,7 +14,6 @@ const SoundCard = ({ sound }) => {
 
   const { play, stop, setVolume, setFilter, getIsPlaying, getVolume } =
     useAudio();
-  const isGeneratedSound = !sound.sound.includes(".");
 
   const isPlaying = getIsPlaying(sound.sound);
   const volume = getVolume(sound.sound);
@@ -29,8 +28,6 @@ const SoundCard = ({ sound }) => {
   }, [handleImageLoad]);
 
   const togglePlayback = () => {
-    if (!isGeneratedSound) return;
-
     if (isPlaying) {
       stop(sound.sound);
     } else {
@@ -102,35 +99,33 @@ const SoundCard = ({ sound }) => {
         </h2>
       </div>
 
-      {isGeneratedSound && (
-        <div
-          className="absolute bottom-4 right-4 bg-dark-primary/50 backdrop-blur-sm px-2 rounded-2xl py-2 flex items-center justify-center"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <span className="w-6 mr-2 text-light-primary">
-            {Math.round(volume * 100)}
-          </span>
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.05"
-            value={volume}
-            onChange={handleVolumeChange}
-            className="w-24"
-            style={{
-              height: "4px",
-              appearance: "none",
-              background: `linear-gradient(to right, oklch(62.3% 0.214 259.815) ${
-                volume * 100
-              }%, oklch(55.3% 0.013 58.071) ${volume * 100}%)`,
-              borderRadius: "999px",
-              outline: "none",
-              cursor: "pointer",
-            }}
-          />
-        </div>
-      )}
+      <div
+        className="absolute bottom-4 right-4 bg-dark-primary/50 backdrop-blur-sm px-2 rounded-2xl py-2 flex items-center justify-center"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <span className="w-6 mr-2 text-light-primary">
+          {Math.round(volume * 100)}
+        </span>
+        <input
+          type="range"
+          min="0"
+          max="1"
+          step="0.05"
+          value={volume}
+          onChange={handleVolumeChange}
+          className="w-24"
+          style={{
+            height: "4px",
+            appearance: "none",
+            background: `linear-gradient(to right, oklch(62.3% 0.214 259.815) ${
+              volume * 100
+            }%, oklch(55.3% 0.013 58.071) ${volume * 100}%)`,
+            borderRadius: "999px",
+            outline: "none",
+            cursor: "pointer",
+          }}
+        />
+      </div>
 
       <img
         ref={imageRef}
