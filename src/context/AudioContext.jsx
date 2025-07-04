@@ -46,7 +46,7 @@ export const AudioProvider = ({ children }) => {
         src: [type],
         loop: true,
         volume,
-        html5: true, // importante per Electron
+        html5: true,
       });
 
       howl.play();
