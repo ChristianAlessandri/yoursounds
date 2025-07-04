@@ -2,6 +2,7 @@ import { app, BrowserWindow, Tray, Menu, ipcMain } from "electron";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
+import { updateLibraryWithDominantColors } from "./processSoundLibrary.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -64,7 +65,8 @@ const createWindow = () => {
   });
 };
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  await updateLibraryWithDominantColors();
   createWindow();
 
   // Tray icon

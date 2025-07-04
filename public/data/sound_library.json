@@ -6,7 +6,8 @@
       "sound_credits": "Created with JavaScript",
       "image": "./images/white_noise.jpg",
       "image_alt": "White noise",
-      "image_credits": "Photo by Augustine Wong on Unsplash"
+      "image_credits": "Photo by Augustine Wong on Unsplash",
+      "dominantColor": "rgb(240, 240, 240)"
     },
     {
       "name": "Pink Noise",
@@ -14,7 +15,8 @@
       "sound_credits": "Created with JavaScript",
       "image": "./images/pink_noise.jpg",
       "image_alt": "Pink noise",
-      "image_credits": "Photo by Pawel Czerwinski on Unsplash"
+      "image_credits": "Photo by Pawel Czerwinski on Unsplash",
+      "dominantColor": "rgb(243, 193, 204)"
     },
     {
       "name": "Brown Noise",
@@ -22,7 +24,8 @@
       "sound_credits": "Created with JavaScript",
       "image": "./images/brown_noise.jpg",
       "image_alt": "Brown noise",
-      "image_credits": "Photo by Pawel Czerwinski on Unsplash"
+      "image_credits": "Photo by Pawel Czerwinski on Unsplash",
+      "dominantColor": "rgb(195, 124, 79)"
     },
     {
       "name": "Airplane Cabin",
@@ -30,7 +33,8 @@
       "sound_credits": "Created with JavaScript",
       "image": "./images/airplane_cabin.jpg",
       "image_alt": "Airplane cabin",
-      "image_credits": "Photo by Karsten Winegeart on Unsplash"
+      "image_credits": "Photo by Karsten Winegeart on Unsplash",
+      "dominantColor": "rgb(19, 29, 40)"
     },
     {
       "name": "Hair Dryer",
@@ -38,7 +42,8 @@
       "sound_credits": "Sound Effect by freesound_community from Pixabay",
       "image": "./images/hair_dryer.jpg",
       "image_alt": "Hair dryer",
-      "image_credits": "Photo by Tessa Edmiston on Unsplash"
+      "image_credits": "Photo by Tessa Edmiston on Unsplash",
+      "dominantColor": "rgb(203, 180, 169)"
     },
     {
       "name": "Rainforest",
@@ -46,7 +51,8 @@
       "sound_credits": "Sound Effect by freesound_community from Pixabay",
       "image": "./images/rainforest.jpg",
       "image_alt": "Rainforest",
-      "image_credits": "Photo by Kyle Cleveland on Unsplash"
+      "image_credits": "Photo by Kyle Cleveland on Unsplash",
+      "dominantColor": "rgb(190, 197, 124)"
     },
     {
       "name": "Ocean Waves",
@@ -54,7 +60,8 @@
       "sound_credits": "Sound Effect by Richard Multimedia from Pixabay",
       "image": "./images/ocean_waves.jpg",
       "image_alt": "Ocean waves",
-      "image_credits": "Photo by Joel Vodell on Unsplash"
+      "image_credits": "Photo by Joel Vodell on Unsplash",
+      "dominantColor": "rgb(11, 102, 94)"
     }
   ]
 }

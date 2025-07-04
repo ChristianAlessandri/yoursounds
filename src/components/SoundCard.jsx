@@ -10,7 +10,10 @@ import {
 const SoundCard = ({ sound }) => {
   const imageRef = useRef(null);
   const [showTooltip, setShowTooltip] = useState(false);
-  const [dominantColor, setDominantColor] = useState("rgb(0,0,0)");
+
+  const [dominantColor, setDominantColor] = useState(
+    sound.dominantColor || "rgb(0,0,0)"
+  );
 
   const { play, stop, setVolume, setFilter, getIsPlaying, getVolume } =
     useAudio();
@@ -19,13 +22,17 @@ const SoundCard = ({ sound }) => {
   const volume = getVolume(sound.sound);
 
   const handleImageLoad = useCallback(() => {
-    const color = extractDominantColor(imageRef.current);
-    if (color) setDominantColor(color);
-  }, []);
+    if (!sound.dominantColor) {
+      const color = extractDominantColor(imageRef.current);
+      if (color) setDominantColor(color);
+    }
+  }, [sound.dominantColor]);
 
   useEffect(() => {
-    if (imageRef.current?.complete) handleImageLoad();
-  }, [handleImageLoad]);
+    if (!sound.dominantColor && imageRef.current?.complete) {
+      handleImageLoad();
+    }
+  }, [handleImageLoad, sound.dominantColor]);
 
   const togglePlayback = () => {
     if (isPlaying) {
@@ -127,14 +134,16 @@ const SoundCard = ({ sound }) => {
         />
       </div>
 
-      <img
-        ref={imageRef}
-        src={sound.image}
-        crossOrigin="anonymous"
-        alt=""
-        style={{ display: "none" }}
-        onLoad={handleImageLoad}
-      />
+      {!sound.dominantColor && (
+        <img
+          ref={imageRef}
+          src={sound.image}
+          crossOrigin="anonymous"
+          alt=""
+          style={{ display: "none" }}
+          onLoad={handleImageLoad}
+        />
+      )}
     </div>
   );
 };
