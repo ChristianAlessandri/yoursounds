@@ -70,7 +70,6 @@ app.whenReady().then(() => {
   // Tray icon
   tray = new Tray(path.join(__dirname, "../public/logos/yoursounds.png"));
 
-  // Crea un menu contestuale per il tray
   const contextMenu = Menu.buildFromTemplate([
     {
       label: "Show",
